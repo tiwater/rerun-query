@@ -39,7 +39,7 @@ for data_row in data:
 
 ## Example
 
-You can find running example and sample data file in [examples](./examples/) folder.
+You can find running example and sample data file in [examples](https://github.com/tiwater/rerun-query/tree/main/examples) folder.
 
 To run the example Python code:
 
