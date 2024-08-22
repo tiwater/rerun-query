@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "rerun_query"                                                   # The name that will appear on PyPI
-version = "0.4.1"
+version = "0.4.6"
 description = "A Rust-powered Python package for querying rerun data."
 authors = [{ name = "Tiwater Team", email = "hi@tiwater.com" }]
 readme = "README.md"
@@ -25,3 +25,6 @@ urls = { "Homepage" = "https://github.com/tiwater/rerun-query" }
 
 # Optional: Define additional dependencies for your package
 dependencies = ["numpy>=1.21"]
+
+[tool.maturin]
+module-name = "requery" # The module name that will be used in Python imports

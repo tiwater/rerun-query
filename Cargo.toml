@@ -16,8 +16,8 @@
 # under the License.
 
 [package]
-name = "rerun-query"
-version = "0.4.1"
+name = "requery"
+version = "0.4.6"
 authors = ["Tiwater Team <hi@tiwater.com>"]
 edition = "2021"
 description = "A Rust-powered Python package for querying rerun data."
@@ -48,5 +48,4 @@ env_logger = "0.11.5"
 re_chunk = "0.18.0"
 
 [package.metadata.maturin]
-name = "rerun-query"    # This is the name that will be used on PyPI.
-module-name = "requery" # The name that users will use to import the package in Python
+name = "requery" # This is the name that will be used on PyPI.

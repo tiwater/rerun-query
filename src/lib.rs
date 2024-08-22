@@ -455,7 +455,7 @@ fn to_meta_chunk(py: Python, chunk: &Chunk) -> PyResult<Py<MetaChunk>> {
 }
 
 /// A Python module implemented in Rust.
-/// This module is a plugin for the Python package `requery`.
+/// This module is a plugin for the Python package `rerun-query`.
 #[pymodule]
 fn requery(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     env_logger::init();
