@@ -37,3 +37,14 @@ maturin publish --username __token__ --password <api-token>
 ```
 
 The API token can be fetched at https://pypi.org/manage/account/token/ .
+
+## GitHub Action
+
+There is a GitHub Action for auto-deployment. Follow these steps to trigger this process:
+
+```bash
+git tag vx.x.x
+git push origin vx.x.x
+```
+
+The GitHub Action will be triggered by the new tag starts with 'v'. Make sure the version numbers in Cargo.toml and pyproject.toml get updated.
