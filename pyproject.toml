@@ -4,11 +4,11 @@ build-backend = "maturin"
 
 [project]
 name = "rerun_query"                                                   # The name that will appear on PyPI
-version = "0.4.0"
+version = "0.4.1"
 description = "A Rust-powered Python package for querying rerun data."
 authors = [{ name = "Tiwater Team", email = "hi@tiwater.com" }]
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.8"
 license = { file = "LICENSE.md" }
 
 # Classifiers help users find your project by categorizing it
@@ -16,7 +16,6 @@ classifiers = [
   "Programming Language :: Python",
   "Programming Language :: Rust",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.12",
   "License :: OSI Approved :: Apache Software License",
   "Operating System :: OS Independent",
 ]
