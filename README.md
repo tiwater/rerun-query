@@ -30,7 +30,7 @@ Use this package:
 ```py
 import requery
 
-data = requery.query_entities(file_path, "")
+data = requery.query_data_entities(file_path, "", "")
 for data_row in data:
     print(f"Entity Path: {data_row.entity_path}")
     for timeline_key, times in data_row.timelines.items():
