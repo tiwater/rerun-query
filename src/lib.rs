@@ -487,6 +487,7 @@ fn is_meta_chunk(chunk: &Chunk) -> bool {
 ///
 /// * `PyResult<Py<PyList>>` - A list of MetaChunk objects.
 #[pyfunction]
+#[pyo3(text_signature = "(file_path: str, entity_path: str) -> List[MetaChunk]")]
 pub fn query_meta_entities(
     py: Python<'_>,
     file_path: &str,
@@ -598,5 +599,8 @@ fn requery(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(query_data_entities, m)?)?;
     m.add_function(wrap_pyfunction!(query_meta_entities, m)?)?;
     m.add_function(wrap_pyfunction!(list_entity_paths, m)?)?;
+    m.add_class::<DataChunk>()?; // Make sure this line is present
+    m.add_class::<MetaChunk>()?; // Make sure this line is present
+    m.add_class::<Data>()?; // Make sure this line is present
     Ok(())
 }

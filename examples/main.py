@@ -1,4 +1,4 @@
-import requery  # type: ignore[import]
+import requery
 
 
 def main():
