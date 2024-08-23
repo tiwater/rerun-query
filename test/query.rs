@@ -32,7 +32,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("debug"))
         .format(|buf, record| writeln!(buf, "{}", record.args()))
         .init();
-    let file_path = "./examples/data/sample-0.18.rrd";
+    let file_path = "./examples/data/robot_action_gripper.rrd";
     let entity_path: &str = "";
 
     let encoded = File::open(&file_path)?;
@@ -52,12 +52,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             LogMsg::ArrowMsg(_store_id, arrow_msg) => match Chunk::from_arrow_msg(&arrow_msg) {
                 Ok(chunk) => {
                     debug!(
-                        "Chunk ({}) - rows {}, cols {}, comps {}, is_tensor_chunk {}",
+                        "Chunk ({}) - rows {}, cols {}, comps {}, is_data_chunk {} (tensor: {}, scalar: {})",
                         chunk.entity_path(),
                         chunk.num_rows(),
                         chunk.num_columns(),
                         chunk.num_components(),
-                        is_tensor_chunk(&chunk)
+                        is_data_chunk(&chunk),
+                        is_tensor_chunk(&chunk),
+                        is_scalar_chunk(&chunk)
                     );
                     if let Some((key, value)) = chunk.components().first_key_value() {
                         // You now have access to `key` and `value`
@@ -95,9 +97,25 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn is_tensor_chunk(chunk: &Chunk) -> bool {
+    // chunk.component_names().for_each(|f| {
+    //     debug!("comp names: {:?}", f);
+    // });
     chunk
         .component_names()
         .any(|name| name == "rerun.components.TensorData")
+}
+
+fn is_scalar_chunk(chunk: &Chunk) -> bool {
+    // chunk.component_names().for_each(|f| {
+    //     debug!("comp names: {:?}", f);
+    // });
+    chunk
+        .component_names()
+        .any(|name| name == "rerun.components.Scalar")
+}
+
+fn is_data_chunk(chunk: &Chunk) -> bool {
+    is_scalar_chunk(chunk) || is_tensor_chunk(chunk)
 }
 
 fn is_action_entity_db(entity_db: &EntityDb) -> bool {

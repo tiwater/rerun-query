@@ -82,109 +82,89 @@ fn get_action_entity_db(bundle: &StoreBundle) -> &EntityDb {
         .find(|entity_db| is_action_entity_db(entity_db))
         .expect("No EntityDb found with action entity")
 }
-
 #[pyclass]
-/// A class representing an action chunk extracted from the RRD file.
-///
-/// # Fields
-///
-/// * `entity_path` - The path of the entity associated with this chunk.
-/// * `timelines` - A hashmap of timeline data associated with this chunk.
-/// * `data` - A 2D NumPy array containing the data of this chunk.
-pub struct ActionChunk {
+pub struct DataChunk {
     entity_path: String,
     timelines: HashMap<String, Py<PyArray1<i64>>>,
-    data: Py<PyArray2<Py<PyAny>>>,
+    data: Data,
+}
+
+#[pyclass]
+pub enum Data {
+    Tensor { data: Py<PyArray2<Py<PyAny>>> },
+    Scalar { data: Py<PyArray1<Py<PyAny>>> },
 }
 
 #[pymethods]
-impl ActionChunk {
+impl DataChunk {
     #[new]
-    /// Creates a new ActionChunk.
-    ///
-    /// # Arguments
-    ///
-    /// * `entity_path` - The path of the entity associated with this chunk.
-    /// * `timelines` - A hashmap of timeline data.
-    /// * `data` - A 2D NumPy array containing the data.
-    ///
-    /// # Returns
-    ///
-    /// * `ActionChunk` - The new ActionChunk object.
     pub fn new(
-        _py: Python,
+        py: Python,
         entity_path: String,
         timelines: HashMap<String, Py<PyArray1<i64>>>,
-        data: Py<PyArray2<Py<PyAny>>>,
-    ) -> Self {
-        ActionChunk {
+        data: PyObject, // Accept PyObject and determine if it's tensor or scalar data
+    ) -> PyResult<Self> {
+        // Determine if the provided data is a Tensor or Scalar
+        let data_enum = if let Ok(tensor_data) = data.extract::<Py<PyArray2<Py<PyAny>>>>(py) {
+            Data::Tensor { data: tensor_data }
+        } else if let Ok(scalar_data) = data.extract::<Py<PyArray1<Py<PyAny>>>>(py) {
+            Data::Scalar { data: scalar_data }
+        } else {
+            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                "Provided data is neither Tensor nor Scalar",
+            ));
+        };
+
+        Ok(DataChunk {
             entity_path,
             timelines,
-            data,
-        }
+            data: data_enum,
+        })
     }
 
     #[getter]
-    /// Gets the entity path.
-    ///
-    /// # Returns
-    ///
-    /// * `&str` - The entity path.
     pub fn entity_path(&self) -> &str {
         &self.entity_path
     }
 
     #[getter]
-    /// Gets the timelines as a Python dictionary.
-    ///
-    /// # Returns
-    ///
-    /// * `Py<PyDict>` - The timelines as a dictionary.
     pub fn timelines(&self, py: Python) -> Py<PyDict> {
-        // Convert the Rust HashMap to a Vec of tuples, which can be converted into a PyDict
         let dict_items: Vec<(&str, Py<PyArray1<i64>>)> = self
             .timelines
             .iter()
             .map(|(k, v)| (k.as_str(), v.clone()))
             .collect();
 
-        // Convert the Vec of tuples into a PyDict using into_py_dict_bound
-        let dict = dict_items.into_py_dict_bound(py).unbind();
-
-        dict
+        dict_items.into_py_dict_bound(py).unbind()
     }
 
     #[getter]
-    /// Gets the data as a 2D NumPy array.
-    ///
-    /// # Returns
-    ///
-    /// * `Py<PyArray2<Py<PyAny>>>` - The data as a 2D NumPy array.
-    pub fn data(&self, py: Python) -> Py<PyArray2<Py<PyAny>>> {
-        self.data.clone_ref(py)
+    pub fn data(&self, py: Python) -> PyObject {
+        match &self.data {
+            Data::Tensor { data } => data.clone_ref(py).into(),
+            Data::Scalar { data } => data.clone_ref(py).into(),
+        }
     }
 }
 
-impl Default for ActionChunk {
+impl Default for DataChunk {
     fn default() -> Self {
-        Python::with_gil(|py| ActionChunk {
+        Python::with_gil(|py| DataChunk {
             entity_path: String::new(),
             timelines: HashMap::new(),
-            data: PyArray2::zeros_bound(py, (0, 0), false).into(),
+            data: Data::Tensor {
+                data: PyArray2::zeros_bound(py, (0, 0), false).into(),
+            },
         })
     }
 }
-// Function to convert a Chunk to ActionChunk
-fn to_action_chunk(py: Python, chunk: &Chunk) -> PyResult<Py<ActionChunk>> {
+
+fn to_data_chunk(py: Python, chunk: &Chunk) -> PyResult<Py<DataChunk>> {
     let entity_path = chunk.entity_path().to_string();
     debug!("Entity Path: {}", entity_path);
 
-    // Creating a new default ActionChunk
-    let mut action_chunk = ActionChunk::default();
-    action_chunk.entity_path = entity_path;
-    let mut all_rows = Vec::new(); // Collect all 1D arrays
-
-    // Iterating over timelines
+    // Handle timelines
+    let mut timelines = HashMap::new();
     for (timeline, time_column) in chunk.timelines() {
         debug!(
             "Timeline: {:?} {:?} {:?}",
@@ -193,23 +173,38 @@ fn to_action_chunk(py: Python, chunk: &Chunk) -> PyResult<Py<ActionChunk>> {
             time_column.times_raw().len()
         );
 
-        // Convert time_column.times_raw() to a PyArray1
         let time_array = PyArray1::from_vec_bound(py, time_column.times_raw().to_vec()).unbind();
-
-        // Replace the corresponding timeline entry in the action_chunk
-        action_chunk
-            .timelines
-            .insert(timeline.name().to_string(), time_array);
+        timelines.insert(timeline.name().to_string(), time_array);
     }
 
-    // Get the tensor component from the chunk and collect into a 2D array
+    // Handle data
+    let data = if is_tensor_chunk(chunk) {
+        to_tensor_data(py, chunk)?
+    } else if is_scalar_chunk(chunk) {
+        to_scalar_data(py, chunk)?
+    } else {
+        return Err(PyErr::new::<PyValueError, _>("Unsupported chunk type"));
+    };
+
+    Py::new(
+        py,
+        DataChunk {
+            entity_path,
+            timelines,
+            data,
+        },
+    )
+}
+
+fn to_tensor_data(py: Python, chunk: &Chunk) -> PyResult<Data> {
+    let mut all_rows = Vec::new();
+
     if let Some((_, tensor_data)) = chunk.components().first_key_value() {
         for i in 0..tensor_data.len() {
             let sub_array = tensor_data.value(i);
             debug!("sub_array: {:?}", sub_array);
 
             if let Some(struct_array) = sub_array.as_any().downcast_ref::<StructArray>() {
-                // Accessing the 'buffer' field as the second field in StructArray
                 if let Some(buffer_array) = struct_array.values().get(1) {
                     let row = match_array_to_numpy(py, buffer_array.as_ref())?;
                     all_rows.push(row);
@@ -221,17 +216,59 @@ fn to_action_chunk(py: Python, chunk: &Chunk) -> PyResult<Py<ActionChunk>> {
             }
         }
 
-        // Convert Vec<PyObject> to a 2D NumPy array
         let tensor_array = PyArray2::from_vec2_bound(py, &all_rows)?.unbind();
-        action_chunk.data = tensor_array.to_owned();
+        Ok(Data::Tensor { data: tensor_array })
+    } else {
+        Err(PyErr::new::<PyValueError, _>(
+            "No tensor data found in chunk",
+        ))
     }
+}
 
-    Py::new(py, action_chunk)
+fn to_scalar_data(py: Python, chunk: &Chunk) -> PyResult<Data> {
+    let mut all_rows = Vec::new();
+
+    if let Some((_, scalar_data)) = chunk.components().first_key_value() {
+        for i in 0..scalar_data.len() {
+            let sub_array = scalar_data.value(i);
+            debug!("sub_array: {:?}", sub_array);
+
+            if let Some(scalar_value) = sub_array.as_any().downcast_ref::<Float64Array>() {
+                // Assuming the scalar value is a single element in the array
+                let value = scalar_value.value(0).into_py(py);
+                all_rows.push(value);
+            } else {
+                error!("Failed to downcast sub_array to Float64Array");
+            }
+        }
+
+        let scalar_array = PyArray1::from_vec_bound(py, all_rows).unbind();
+        Ok(Data::Scalar { data: scalar_array })
+    } else {
+        Err(PyErr::new::<PyValueError, _>(
+            "No scalar data found in chunk",
+        ))
+    }
+}
+
+fn is_tensor_chunk(chunk: &Chunk) -> bool {
+    chunk
+        .component_names()
+        .any(|name| name == "rerun.components.TensorData")
+}
+
+fn is_scalar_chunk(chunk: &Chunk) -> bool {
+    chunk
+        .component_names()
+        .any(|name| name == "rerun.components.Scalar")
+}
+
+fn is_data_chunk(chunk: &Chunk) -> bool {
+    is_scalar_chunk(chunk) || is_tensor_chunk(chunk)
 }
 
 // Helper function to match an Array to the correct NumPy array type and convert it to Vec<PyObject>
 fn match_array_to_numpy(py: Python, array: &dyn Array) -> PyResult<Vec<PyObject>> {
-    debug!("array to match: {:?}", array);
     if let Some(union_array) = array.as_any().downcast_ref::<UnionArray>() {
         let mut result: Vec<Py<PyAny>> = Vec::with_capacity(union_array.len());
         let fields = union_array.fields();
@@ -251,7 +288,6 @@ fn match_array_to_numpy(py: Python, array: &dyn Array) -> PyResult<Vec<PyObject>
                         .downcast_ref::<ListArray<i32>>()
                         .unwrap();
                     let list_element: Box<dyn Array> = list_array.value(value_index);
-                    debug!("List Element {}: {:?}", value_index, list_element);
                     let struct_array = list_element
                         .as_any()
                         .downcast_ref::<Float64Array>()
@@ -279,31 +315,24 @@ fn match_array_to_numpy(py: Python, array: &dyn Array) -> PyResult<Vec<PyObject>
     }
 }
 
-fn is_action_chunk(chunk: &Chunk) -> bool {
-    // chunk.component_names().for_each(|f| {
-    //     debug!("comp names: {:?}", f);
-    // });
-    chunk
-        .component_names()
-        .any(|name| name == "rerun.components.TensorData")
-}
-
 /// Retrieve specific data (scalar or tensor) for an entity in a specific RRD file.
 /// Set entity_path to "" will return all the data.
 ///
 /// # Arguments
 ///
 /// * `file_path` - A string slice that holds the path to the RRD file.
-/// * `entity_path` - A string slice that holds the specific entity path to filter. Set to empty string to return all data.
+/// * `entity_path_filter` - A string slice that holds the specific entity path to filter. Set to empty string to return all data.
+/// * `data_type_filter` - A string slice that holds the data type to filter. Set to "scalar" or "tensor" to filter by data type.
 ///
 /// # Returns
 ///
 /// * `PyResult<Py<PyList>>` - A list of ActionChunk objects.
 #[pyfunction]
-pub fn query_action_entities(
+pub fn query_data_entities(
     py: Python<'_>,
     file_path: &str,
-    entity_path: &str,
+    data_type_filter: &str,   // "scalar" or "tensor", or "" for both
+    entity_path_filter: &str, // "" for all entities
 ) -> PyResult<Py<PyList>> {
     let encoded = File::open(&file_path).map_err(|e| {
         PyErr::new::<pyo3::exceptions::PyIOError, _>(format!("File open error: {}", e))
@@ -316,7 +345,7 @@ pub fn query_action_entities(
     let rrd = get_action_entity_db(&bundle);
     debug!("This rrd file contains {} rows", rrd.num_rows());
 
-    let mut action_chunks: Vec<Py<ActionChunk>> = Vec::new();
+    let mut data_chunks: Vec<Py<DataChunk>> = Vec::new();
 
     let message_iter = rrd.to_messages(None);
     message_iter.for_each(|message| {
@@ -324,14 +353,15 @@ pub fn query_action_entities(
             LogMsg::ArrowMsg(_store_id, arrow_msg) => match Chunk::from_arrow_msg(&arrow_msg) {
                 Ok(chunk) => {
                     // debug!("Schema: {:#?}", arrow_msg.schema);
-                    if (entity_path.is_empty() || (entity_path == &chunk.entity_path().to_string()))
-                        && is_action_chunk(&chunk)
+                    if matches_data_type(&chunk, data_type_filter)
+                        && matches_entity_path(&chunk, entity_path_filter)
+                        && is_data_chunk(&chunk)
                     {
-                        match to_action_chunk(py, &chunk) {
-                            Ok(action_chunk) => {
-                                action_chunks.push(action_chunk);
+                        match to_data_chunk(py, &chunk) {
+                            Ok(data_chunk) => {
+                                data_chunks.push(data_chunk);
                             }
-                            Err(e) => println!("Failed calling to_action_chunk: {:?}", e),
+                            Err(e) => println!("Failed calling to_data_chunk: {:?}", e),
                         }
                     }
                 }
@@ -345,18 +375,35 @@ pub fn query_action_entities(
         });
     });
 
-    if action_chunks.is_empty() {
+    if data_chunks.is_empty() {
         Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
             "No data found for the specified entity and data type",
         ))
     } else {
-        let py_action_chunks = PyList::new_bound(py, &action_chunks).unbind();
-        Ok(py_action_chunks)
+        let py_data_chunks = PyList::new_bound(py, &data_chunks).unbind();
+        Ok(py_data_chunks)
+    }
+}
+
+fn matches_data_type(chunk: &Chunk, data_type_filter: &str) -> bool {
+    match data_type_filter {
+        "scalar" => is_scalar_chunk(chunk),
+        "tensor" => is_tensor_chunk(chunk),
+        "" => true, // No filter, accept all data types
+        _ => false, // Invalid filter, nothing fits
+    }
+}
+
+fn matches_entity_path(chunk: &Chunk, entity_path_filter: &str) -> bool {
+    if entity_path_filter.is_empty() {
+        true // No filter, accept all entity paths
+    } else {
+        chunk.entity_path().to_string().contains(entity_path_filter)
     }
 }
 
 #[pyclass]
-/// A class representing a meta chunk extracted from the RRD file.
+/// A class representing a text chunk extracted from the RRD file.
 ///
 /// # Fields
 ///
@@ -365,45 +412,59 @@ pub fn query_action_entities(
 /// * `text` - The metadata.
 ///
 /// This class is subject to change in the future, as data types are being extended.
-pub struct MetaChunk {
-    entity_path: String,
-    media_type: String,
-    text: String,
+pub enum MetaChunk {
+    Text {
+        entity_path: String,
+        media_type: String,
+        text: String,
+    },
 }
 
+// Implement the conversion to Py<MetaChunk>
+impl IntoPy<Py<MetaChunk>> for MetaChunk {
+    fn into_py(self, py: Python) -> Py<MetaChunk> {
+        Py::new(py, self).unwrap() // Adjust error handling as needed
+    }
+}
 #[pymethods]
 impl MetaChunk {
     #[new]
-    pub fn new() -> Self {
-        Self {
-            entity_path: String::new(),
-            media_type: String::new(),
-            text: String::new(),
+    pub fn new(entity_path: String, media_type: String, text: String) -> Self {
+        MetaChunk::Text {
+            entity_path,
+            media_type,
+            text,
         }
     }
 
-    // Getter for entity_path
     #[getter]
     pub fn entity_path(&self) -> &str {
-        &self.entity_path
+        let MetaChunk::Text { entity_path, .. } = self;
+        entity_path
     }
 
-    // Getter for media_type
     #[getter]
     pub fn media_type(&self) -> &str {
-        &self.media_type
+        let MetaChunk::Text { media_type, .. } = self;
+        media_type
     }
 
-    // Getter for text
     #[getter]
     pub fn text(&self) -> &str {
-        &self.text
+        let MetaChunk::Text { text, .. } = self;
+        text
     }
 
     fn __repr__(&self) -> PyResult<String> {
+        let MetaChunk::Text {
+            entity_path,
+            media_type,
+            text,
+        } = self;
+
         Ok(format!(
-            "<MetaChunk(entity_path='{}', media_type={}, text={})>",
-            self.entity_path, self.media_type, self.text
+            "<MetaChunk(entity_path='{}', media_type='{}', text='{}')>",
+            entity_path, media_type, text
         ))
     }
 }
@@ -519,7 +580,7 @@ fn to_meta_chunk(py: Python, chunk: &Chunk) -> PyResult<Py<MetaChunk>> {
         "no text".to_string()
     };
 
-    let meta_chunk = MetaChunk {
+    let meta_chunk = MetaChunk::Text {
         entity_path,
         media_type,
         text,
@@ -534,7 +595,7 @@ fn to_meta_chunk(py: Python, chunk: &Chunk) -> PyResult<Py<MetaChunk>> {
 fn requery(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     env_logger::init();
 
-    m.add_function(wrap_pyfunction!(query_action_entities, m)?)?;
+    m.add_function(wrap_pyfunction!(query_data_entities, m)?)?;
     m.add_function(wrap_pyfunction!(query_meta_entities, m)?)?;
     m.add_function(wrap_pyfunction!(list_entity_paths, m)?)?;
     Ok(())

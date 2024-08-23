@@ -29,7 +29,7 @@ def main():
     # Call the query_action_entities function
     try:
         print("Query action chunks")
-        data = requery.query_action_entities(file_path, "")
+        data = requery.query_data_entities(file_path, "", "")
         for data_row in data:
             print(f"Entity Path: {data_row.entity_path}")
             for timeline_key, times in data_row.timelines.items():

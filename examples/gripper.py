@@ -5,14 +5,17 @@ def main():
     # Define the file path and entity path you want to query
     file_path = "./data/robot_action_gripper.rrd"
 
-    # Call the query_action_entities function
+    # Call the query_data_entities function with filter "scalar"
     try:
-        data = requery.query_action_entities(file_path, "")
+        data = requery.query_data_entities(file_path, "scalar", "")
         for data_row in data:
             print(f"Entity Path: {data_row.entity_path}")
             for timeline_key, times in data_row.timelines.items():
                 print(f"Timeline({timeline_key}) - {times}")
             data_object = data_row.data
+            print(
+                f"Only showing at most the first 10 items out of {len(data_object)} total data columns."
+            )
             for index, data in enumerate(data_object[:10]):
                 print(f"- {index + 1} {data}")
     except Exception as err:
