@@ -29,8 +29,22 @@ use std::{collections::HashMap, fs::File};
 //     Ok(entity_dbs)
 // }
 
+/// Retrieve the list of all entity paths from a specific RRD file.
+///
+/// # Arguments
+///
+/// * `file_path` - A string slice that holds the path to the RRD file.
+///
+/// # Returns
+///
+/// * `PyResult<Vec<String>>` - A list of entity paths if successful, otherwise raises an IOError or ValueError.
+///
+/// # Example
+///
+/// ```python
+/// entities = requery.list_entity_paths("/path/to/file.rrd")
+/// ```
 #[pyfunction]
-/// Retrieve a list of entities from a specific RRD file.
 pub fn list_entity_paths(file_path: &str) -> PyResult<Vec<String>> {
     let encoded = File::open(&file_path)
         .map_err(|e| PyErr::new::<PyIOError, _>(format!("File open error: {}", e)))?;
@@ -70,6 +84,13 @@ fn get_action_entity_db(bundle: &StoreBundle) -> &EntityDb {
 }
 
 #[pyclass]
+/// A class representing an action chunk extracted from the RRD file.
+///
+/// # Fields
+///
+/// * `entity_path` - The path of the entity associated with this chunk.
+/// * `timelines` - A hashmap of timeline data associated with this chunk.
+/// * `data` - A 2D NumPy array containing the data of this chunk.
 pub struct ActionChunk {
     entity_path: String,
     timelines: HashMap<String, Py<PyArray1<i64>>>,
@@ -79,6 +100,17 @@ pub struct ActionChunk {
 #[pymethods]
 impl ActionChunk {
     #[new]
+    /// Creates a new ActionChunk.
+    ///
+    /// # Arguments
+    ///
+    /// * `entity_path` - The path of the entity associated with this chunk.
+    /// * `timelines` - A hashmap of timeline data.
+    /// * `data` - A 2D NumPy array containing the data.
+    ///
+    /// # Returns
+    ///
+    /// * `ActionChunk` - The new ActionChunk object.
     pub fn new(
         _py: Python,
         entity_path: String,
@@ -93,11 +125,21 @@ impl ActionChunk {
     }
 
     #[getter]
+    /// Gets the entity path.
+    ///
+    /// # Returns
+    ///
+    /// * `&str` - The entity path.
     pub fn entity_path(&self) -> &str {
         &self.entity_path
     }
 
     #[getter]
+    /// Gets the timelines as a Python dictionary.
+    ///
+    /// # Returns
+    ///
+    /// * `Py<PyDict>` - The timelines as a dictionary.
     pub fn timelines(&self, py: Python) -> Py<PyDict> {
         // Convert the Rust HashMap to a Vec of tuples, which can be converted into a PyDict
         let dict_items: Vec<(&str, Py<PyArray1<i64>>)> = self
@@ -113,6 +155,11 @@ impl ActionChunk {
     }
 
     #[getter]
+    /// Gets the data as a 2D NumPy array.
+    ///
+    /// # Returns
+    ///
+    /// * `Py<PyArray2<Py<PyAny>>>` - The data as a 2D NumPy array.
     pub fn data(&self, py: Python) -> Py<PyArray2<Py<PyAny>>> {
         self.data.clone_ref(py)
     }
@@ -243,6 +290,15 @@ fn is_action_chunk(chunk: &Chunk) -> bool {
 
 /// Retrieve specific data (scalar or tensor) for an entity in a specific RRD file.
 /// Set entity_path to "" will return all the data.
+///
+/// # Arguments
+///
+/// * `file_path` - A string slice that holds the path to the RRD file.
+/// * `entity_path` - A string slice that holds the specific entity path to filter. Set to empty string to return all data.
+///
+/// # Returns
+///
+/// * `PyResult<Py<PyList>>` - A list of ActionChunk objects.
 #[pyfunction]
 pub fn query_action_entities(
     py: Python<'_>,
@@ -300,6 +356,15 @@ pub fn query_action_entities(
 }
 
 #[pyclass]
+/// A class representing a meta chunk extracted from the RRD file.
+///
+/// # Fields
+///
+/// * `entity_path` - The path of the entity associated with this chunk.
+/// * `media_type` - The media type of the metadata, such as text/plain.
+/// * `text` - The metadata.
+///
+/// This class is subject to change in the future, as data types are being extended.
 pub struct MetaChunk {
     entity_path: String,
     media_type: String,
@@ -349,9 +414,18 @@ fn is_meta_chunk(chunk: &Chunk) -> bool {
         .any(|name| name == "rerun.components.Text")
 }
 
-/// Retrieve specific media type data from a specific RRD file.
+/// Retrieve specific metadata for an entity in a specific RRD file.
+/// Set entity_path to "" will return all the data.
+///
+/// # Arguments
+///
+/// * `file_path` - A string slice that holds the path to the RRD file.
+/// * `entity_path` - A string slice that holds the specific entity path to filter. Set to empty string to return all data.
+///
+/// # Returns
+///
+/// * `PyResult<Py<PyList>>` - A list of MetaChunk objects.
 #[pyfunction]
-/// Retrieve specific media type data from a specific RRD file.
 pub fn query_meta_entities(
     py: Python<'_>,
     file_path: &str,
