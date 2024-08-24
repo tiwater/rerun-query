@@ -36,7 +36,7 @@ jobs:
       - name: Run Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python -m semantic_release
+        run: python -m semantic_release --noop -v
 
       - name: Build and Publish with Maturin
         if: success()
