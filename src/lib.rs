@@ -661,14 +661,14 @@ fn to_meta_chunk(py: Python, chunk: &Chunk) -> PyResult<Py<MetaChunk>> {
 /// A Python module implemented in Rust.
 /// This module is a plugin for the Python package `rerun-query`.
 #[pymodule]
-fn requery(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
+fn requery(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     env_logger::init();
 
-    m.add_function(wrap_pyfunction!(query_data_entities, m)?)?;
-    m.add_function(wrap_pyfunction!(query_meta_entities, m)?)?;
-    m.add_function(wrap_pyfunction!(list_entity_paths, m)?)?;
-    m.add_class::<DataChunk>()?; // Make sure this line is present
-    m.add_class::<MetaChunk>()?; // Make sure this line is present
-    m.add_class::<Data>()?; // Make sure this line is present
+    m.add_function(wrap_pyfunction_bound!(query_data_entities, m)?)?;
+    m.add_function(wrap_pyfunction_bound!(query_meta_entities, m)?)?;
+    m.add_function(wrap_pyfunction_bound!(list_entity_paths, m)?)?;
+    m.add_class::<DataChunk>()?;
+    m.add_class::<MetaChunk>()?;
+    m.add_class::<Data>()?;
     Ok(())
 }

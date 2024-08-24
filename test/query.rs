@@ -137,7 +137,7 @@ fn append_to_data_map(chunk: &Chunk, data_map: &mut HashMap<String, ReactionData
     let entity_path = chunk.entity_path().to_string();
     debug!("Entity Path: {}", entity_path);
 
-    let entry = data_map.entry(entity_path).or_default();
+    let _entry = data_map.entry(entity_path).or_default();
 
     // debug!("chunk: {:?}", chunk);
 }
