@@ -1,6 +1,16 @@
 # CHANGELOG
 
+## v0.6.11 (2024-08-24)
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/tiwater/rerun-query ([`9b7ffe9`](https://github.com/tiwater/rerun-query/commit/9b7ffe9178f3e860ff2410ac4320e975e97933a9))
+
 ## v0.6.10 (2024-08-24)
+
+### Fix
+
+* fix: version updates to toml files failed ([`8a58941`](https://github.com/tiwater/rerun-query/commit/8a58941b25ad65e3f5dee1d2944e1b1a2033a500))
 
 ### Unknown
 
