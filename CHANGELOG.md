@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.6.15 (2024-08-24)
+
+### Fix
+
+* fix: pushed version to wrong branch ([`818156a`](https://github.com/tiwater/rerun-query/commit/818156ae7b5e1658c15e05d4bd99e2bcadc0d864))
+
 ## v0.6.14 (2024-08-24)
 
 ### Unknown
