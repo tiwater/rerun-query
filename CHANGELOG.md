@@ -1,8 +1,20 @@
 # CHANGELOG
 
+## v0.6.17 (2024-08-24)
+
+### Fix
+
+* fix: format issue in release.yml ([`8ced30b`](https://github.com/tiwater/rerun-query/commit/8ced30b08ec561696a41cb9713794310cac38af7))
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/tiwater/rerun-query ([`bd53a83`](https://github.com/tiwater/rerun-query/commit/bd53a83996c4f872a877ec9c9cc7690274cfcb22))
+
 ## v0.6.16 (2024-08-24)
 
 ### Fix
+
+* fix: commit version failed ([`04a2a01`](https://github.com/tiwater/rerun-query/commit/04a2a01ff7dd16eac12392f0b0e1cb20be4ca271))
 
 * fix: version not commited ([`ec4a19d`](https://github.com/tiwater/rerun-query/commit/ec4a19ddb7f1f7b581e9d6653ce5d87d14dd4092))
 
