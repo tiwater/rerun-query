@@ -2,6 +2,10 @@
 
 ## v0.6.8 (2024-08-24)
 
+### Chore
+
+* chore: Tags ([`858e357`](https://github.com/tiwater/rerun-query/commit/858e3572342c8f8f65cff14c648dfeb4dbb45b5a))
+
 ### Unknown
 
 * Merge branch &#39;main&#39; of https://github.com/tiwater/rerun-query ([`ab78660`](https://github.com/tiwater/rerun-query/commit/ab78660244e06fae76d530712e8933cec398c52f))
