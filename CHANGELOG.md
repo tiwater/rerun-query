@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.6.8 (2024-08-24)
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/tiwater/rerun-query ([`ab78660`](https://github.com/tiwater/rerun-query/commit/ab78660244e06fae76d530712e8933cec398c52f))
+
 ## v0.6.7 (2024-08-24)
 
 ### Chore
@@ -11,6 +17,12 @@
 * chore: New workflow name ([`16adecf`](https://github.com/tiwater/rerun-query/commit/16adecf776b8842b90e3edbaeca65c28593d9ddf))
 
 ### Fix
+
+* fix: Removed warnings ([`1b50728`](https://github.com/tiwater/rerun-query/commit/1b5072880f5827b27414d11198e01e35f750d8cb))
+
+* fix: with keyword in python-semantic-release ([`ccff2cd`](https://github.com/tiwater/rerun-query/commit/ccff2cd5e10c0201491497cfd48912039ec6ca29))
+
+* fix: Permission of GitHub Action ([`976d6eb`](https://github.com/tiwater/rerun-query/commit/976d6eb5169a0b22f9d404f4f170dd065e3b7002))
 
 * fix: Use python-semantic-release GitHub Action ([`4b19067`](https://github.com/tiwater/rerun-query/commit/4b19067d7d07e64b6d231b5a7734bb8b2d0e3924))
 
