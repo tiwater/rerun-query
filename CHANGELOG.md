@@ -1,6 +1,24 @@
 # CHANGELOG
 
+## v0.6.18 (2024-08-24)
+
+### Chore
+
+* chore: Commit something ([`bba903f`](https://github.com/tiwater/rerun-query/commit/bba903fc21deffe90b40dbf1bdc101d9d8174572))
+
+### Fix
+
+* fix: trigger release ([`5fe6403`](https://github.com/tiwater/rerun-query/commit/5fe64039bf786112a0c3877e0531a0a531d6c677))
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/tiwater/rerun-query ([`5c9b16b`](https://github.com/tiwater/rerun-query/commit/5c9b16bd60fe73588a50a838afb86b6ef634bfe0))
+
 ## v0.6.17 (2024-08-24)
+
+### Chore
+
+* chore: debug the problem in git add ([`a80d935`](https://github.com/tiwater/rerun-query/commit/a80d9353c996b85d276e31759abea13ee942bbba))
 
 ### Fix
 
