@@ -54,10 +54,7 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           name: Release ${{ github.ref }}
-          body: |
-            Changes in this Release
-            - First Change
-            - Second Change
+          body: ${{ steps.generate_release_notes.outputs.body }}
           draft: false
           prerelease: false
         env:
