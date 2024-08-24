@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.6.19 (2024-08-24)
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/tiwater/rerun-query ([`b50a697`](https://github.com/tiwater/rerun-query/commit/b50a69732011f5dcceed3b7d09bfae48f77cefc6))
+
 ## v0.6.18 (2024-08-24)
 
 ### Chore
@@ -7,6 +13,8 @@
 * chore: Commit something ([`bba903f`](https://github.com/tiwater/rerun-query/commit/bba903fc21deffe90b40dbf1bdc101d9d8174572))
 
 ### Fix
+
+* fix: git commit permission ([`bb37ad2`](https://github.com/tiwater/rerun-query/commit/bb37ad2040d68318ea88878011f88bb701889dc3))
 
 * fix: trigger release ([`5fe6403`](https://github.com/tiwater/rerun-query/commit/5fe64039bf786112a0c3877e0531a0a531d6c677))
 
