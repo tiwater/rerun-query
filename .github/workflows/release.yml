@@ -53,13 +53,25 @@ jobs:
           sed -i "s/^version = .*/version = \"$NEW_VERSION\"/" pyproject.toml
           sed -i "s/^version = .*/version = \"$NEW_VERSION\"/" Cargo.toml
 
-      - name: Commit and Push Changes
-        if: steps.release.outputs.released == 'true'
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --exit-code || echo "changes=true" >> $GITHUB_OUTPUT
+
+      - name: Commit changes
+        if: steps.git-check.outputs.changes == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add pyproject.toml Cargo.toml
+          git commit -m "chore: update version to ${{ steps.release.outputs.version }} [skip ci]"
+
+      - name: Push changes
+        if: steps.git-check.outputs.changes == 'true'
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.PAT_TOKEN }}
           branch: main
-          message: "chore: update version to ${{ steps.release.outputs.version }} [skip ci]"
 
       - name: Build and Publish with Maturin
         if: steps.release.outputs.released == 'true'

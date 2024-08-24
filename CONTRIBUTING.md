@@ -31,20 +31,14 @@ RUST_LOG=debug python3 main.py
 
 ## Publish
 
-```bash
-maturin build
-maturin publish --username __token__ --password <api-token>
-```
+We use a GitHub Action called "Semantic Release" to manage our publishing process. This approach ensures consistent versioning and automated releases.
 
-The API token can be fetched at https://pypi.org/manage/account/token/ .
+Developers can commit and push changes to the repository as needed. These actions do not automatically trigger a new release. When it's time to publish a new version, go to the GitHub Actions page for this repository, locate the "Semantic Release" workflow, and run it
 
-## GitHub Action
+## Best Practices
 
-There is a GitHub Action for auto-deployment. Follow these steps to trigger this process:
+- Use conventional commit messages to help with automatic versioning.
+- Only trigger the "Semantic Release" workflow when you're ready to publish a new version.
+- Review the generated release notes before finalizing the release.
 
-```bash
-git tag vx.x.x
-git push origin vx.x.x
-```
-
-The GitHub Action will be triggered by the new tag starts with 'v'. Make sure the version numbers in Cargo.toml and pyproject.toml get updated.
+By following this process, we maintain control over when releases happen while benefiting from the automation provided by Semantic Release.
