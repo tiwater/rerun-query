@@ -12,6 +12,22 @@ jobs:
     steps:
       - name: Check out the code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # This ensures all tags and history are fetched
+
+      - name: Generate Release Notes
+        id: generate_release_notes
+        uses: release-drafter/release-drafter@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          config-name: release-drafter.yml
+          disable-autolabeler: true
+
+      - name: Update package description
+        run: |
+          echo "${{ steps.generate_release_notes.outputs.body }}" > RELEASE_NOTES.md
+          cat RELEASE_NOTES.md >> README.md
 
       - name: Install Python
         uses: actions/setup-python@v4
@@ -32,3 +48,14 @@ jobs:
         env:
           MATURIN_PASSWORD: ${{ secrets.PYPI_API_TOKEN }} # The PyPI API token stored in GitHub secrets
         run: maturin publish --username __token__ --password $MATURIN_PASSWORD
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: ${{ steps.generate_release_notes.outputs.body }}
+          draft: false
+          prerelease: false
