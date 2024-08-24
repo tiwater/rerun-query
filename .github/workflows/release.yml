@@ -34,10 +34,9 @@ jobs:
           pip install python-semantic-release toml
 
       - name: Run Semantic Release
+        uses: python-semantic-release/python-semantic-release@v9.8.7
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: semantic-release -h
-        run: semantic-release --noop version
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and Publish with Maturin
         if: success()
