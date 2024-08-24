@@ -3,7 +3,7 @@ requires = ["maturin>=0.14.0"]
 build-backend = "maturin"
 
 [project]
-name = "rerun_query"                                                   # The name that will appear on PyPI
+name = "rerun_query"
 version = "0.6.6"
 description = "A Rust-powered Python package for querying rerun data."
 authors = [{ name = "Tiwater Team", email = "hi@tiwater.com" }]
