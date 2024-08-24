@@ -58,7 +58,7 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.PAT_TOKEN }}
-          branch: master
+          branch: main
           message: "chore: update version to ${{ steps.release.outputs.version }} [skip ci]"
 
       - name: Build and Publish with Maturin
