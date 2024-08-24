@@ -2,9 +2,9 @@ name: Semantic Release
 
 on:
   push:
-    tags:
-      - "v*" # Trigger the action only when a tag matching "v*" is pushed
-  workflow_dispatch: # Allows manual triggering
+    branches:
+      - master # Changed from tags to branch as per the example
+  workflow_dispatch: # Kept for manual triggering
 
 jobs:
   release:
@@ -37,13 +37,13 @@ jobs:
           pip install maturin
           pip install python-semantic-release toml
 
-      - name: Run Semantic Release
-        uses: python-semantic-release/python-semantic-release@v9.8.7
-        env:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Python Semantic Release
+        uses: python-semantic-release/python-semantic-release@v9.8.6 # Updated to match example version
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }} # Changed to use 'with' instead of 'env'
 
       - name: Build and Publish with Maturin
-        if: success()
+        if: steps.semantic_release.outputs.released == 'true' # Only run if a release was made
         env:
           MATURIN_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: maturin publish --username __token__ --password $MATURIN_PASSWORD
