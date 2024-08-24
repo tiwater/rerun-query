@@ -26,7 +26,7 @@ def main():
     except Exception as err:
         print(f"Error: {err}")
 
-    # Call the query_action_entities function
+    # Call the query_data_entities function
     try:
         print("Query action chunks")
         data = requery.query_data_entities(file_path, "", "")
