@@ -1,6 +1,16 @@
 # CHANGELOG
 
+## v0.6.14 (2024-08-24)
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/tiwater/rerun-query ([`21f88fc`](https://github.com/tiwater/rerun-query/commit/21f88fcb330e834e9a954cbb57ceeaa0c2746fe3))
+
 ## v0.6.13 (2024-08-24)
+
+### Fix
+
+* fix: again and again ... ([`f287d89`](https://github.com/tiwater/rerun-query/commit/f287d8945ec4057a4ccf1d54062e415d30c5d8ba))
 
 ### Unknown
 
