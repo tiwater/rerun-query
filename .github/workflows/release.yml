@@ -20,6 +20,7 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.PAT_TOKEN }}
+          persist-credentials: false
 
       - name: Install Python
         uses: actions/setup-python@v4
@@ -53,19 +54,48 @@ jobs:
           sed -i "s/^version = .*/version = \"$NEW_VERSION\"/" pyproject.toml
           sed -i "s/^version = .*/version = \"$NEW_VERSION\"/" Cargo.toml
 
-      - name: Set up Git
+      # Debug steps start here
+      - name: Debug - Check file status
+        if: steps.release.outputs.released == 'true'
         run: |
-          git config --global user.name 'GitHub Action'
-          git config --global user.email 'action@github.com'
+          ls -l pyproject.toml Cargo.toml
+          git diff pyproject.toml Cargo.toml
 
-      - name: Commit and Push Changes
+      - name: Debug - Force add files
+        if: steps.release.outputs.released == 'true'
+        run: git add -f pyproject.toml Cargo.toml
+
+      - name: Debug - Check Git status
+        if: steps.release.outputs.released == 'true'
+        run: git status
+
+      - name: Debug - Add files individually
+        if: steps.release.outputs.released == 'true'
+        run: |
+          git add pyproject.toml || echo "Failed to add pyproject.toml"
+          git add Cargo.toml || echo "Failed to add Cargo.toml"
+
+      - name: Debug - Check .git permissions
+        if: steps.release.outputs.released == 'true'
+        run: ls -la .git
+      # Debug steps end here
+
+      - name: Commit Changes
         if: steps.release.outputs.released == 'true'
         env:
           PAT: ${{ secrets.PAT_TOKEN }}
         run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
           git add pyproject.toml Cargo.toml
           git commit -m "chore: update version to ${{ steps.release.outputs.version }} [skip ci]" || echo "No changes to commit"
-          git push https://${PAT}@github.com/${GITHUB_REPOSITORY}.git HEAD:main
+
+      - name: Push changes
+        if: steps.release.outputs.released == 'true'
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.PAT_TOKEN }}
+          branch: main
 
       - name: Build and Publish with Maturin
         if: steps.release.outputs.released == 'true'
