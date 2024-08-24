@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.6.10 (2024-08-24)
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/tiwater/rerun-query ([`cc718df`](https://github.com/tiwater/rerun-query/commit/cc718df49bdd985d3da9e8efd476e39657484520))
+
 ## v0.6.9 (2024-08-24)
 
 ### Chore
@@ -7,6 +13,8 @@
 * chore: Tags ([`858e357`](https://github.com/tiwater/rerun-query/commit/858e3572342c8f8f65cff14c648dfeb4dbb45b5a))
 
 ### Fix
+
+* fix: Auto version update in workflow ([`d0f098a`](https://github.com/tiwater/rerun-query/commit/d0f098ad0773a4132c5b3d15732da46a87978116))
 
 * fix: Publish step in wokflow never reached ([`9c1596e`](https://github.com/tiwater/rerun-query/commit/9c1596ed2b845a5904b81c6abe104155496cf60f))
 
