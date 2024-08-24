@@ -49,11 +49,11 @@ jobs:
           MATURIN_PASSWORD: ${{ secrets.PYPI_API_TOKEN }} # The PyPI API token stored in GitHub secrets
         run: maturin publish --username __token__ --password $MATURIN_PASSWORD
 
-      - name: Create Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref }}
-          name: Release ${{ github.ref }}
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
           body: ${{ steps.generate_release_notes.outputs.body }}
           draft: false
           prerelease: false
