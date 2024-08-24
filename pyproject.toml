@@ -44,6 +44,5 @@ module-name = "requery"
 features = ["pyo3/extension-module"]
 
 [tool.semantic_release]
-version_source = "tag_only"
 version_variable = ["Cargo.toml:version", "pyproject.toml:version"]
 upload_to_pypi = false
