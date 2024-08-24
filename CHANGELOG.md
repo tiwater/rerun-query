@@ -1,10 +1,18 @@
 # CHANGELOG
 
-## v0.6.8 (2024-08-24)
+## v0.6.9 (2024-08-24)
 
 ### Chore
 
 * chore: Tags ([`858e357`](https://github.com/tiwater/rerun-query/commit/858e3572342c8f8f65cff14c648dfeb4dbb45b5a))
+
+### Fix
+
+* fix: Publish step in wokflow never reached ([`9c1596e`](https://github.com/tiwater/rerun-query/commit/9c1596ed2b845a5904b81c6abe104155496cf60f))
+
+* fix: Made versioning automatic ([`9f710f1`](https://github.com/tiwater/rerun-query/commit/9f710f17d85a27d7684e9683379aac0dbfc375c4))
+
+## v0.6.8 (2024-08-24)
 
 ### Unknown
 
