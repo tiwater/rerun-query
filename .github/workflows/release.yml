@@ -31,12 +31,12 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install maturin
-          pip install semantic-release toml
+          pip install python-semantic-release toml
 
       - name: Run Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: semantic-release
+        run: python -m semantic_release
 
       - name: Build and Publish with Maturin
         if: success()
