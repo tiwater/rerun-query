@@ -1,0 +1,45 @@
+name: Publish Python Package
+
+on:
+  push:
+    tags:
+      - "v*" # Trigger the action only when a tag matching "v*" is pushed
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.8"
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+
+      - name: Install Dependencies
+        run: |
+          pip install maturin
+          pip install semantic-release toml
+
+      - name: Run Semantic Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: semantic-release
+
+      - name: Build and Publish with Maturin
+        if: success()
+        env:
+          MATURIN_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: maturin publish --username __token__ --password $MATURIN_PASSWORD
