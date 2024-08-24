@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "rerun_query"                                                   # The name that will appear on PyPI
-version = "0.6.2"
+version = "0.6.3"
 description = "A Rust-powered Python package for querying rerun data."
 authors = [{ name = "Tiwater Team", email = "hi@tiwater.com" }]
 readme = "README.md"
