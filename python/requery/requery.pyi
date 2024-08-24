@@ -1,4 +1,5 @@
-from typing import Any, Dict, List, Union
+from typing import Dict, List, Union
+import numpy as np
 
 class DataChunk:
     """
@@ -13,7 +14,7 @@ class DataChunk:
     def __init__(
         self,
         entity_path: str,
-        timelines: Dict[str, Any],
+        timelines: Dict[str, np.ndarray],
         data: Union["Data.Tensor", "Data.Scalar"],
     ) -> None: ...
     @property
@@ -22,7 +23,7 @@ class DataChunk:
         ...
 
     @property
-    def timelines(self) -> Dict[str, Any]:
+    def timelines(self) -> Dict[str, np.ndarray]:
         """Get the timelines dictionary."""
         ...
 
@@ -35,16 +36,16 @@ class Data:
     class Tensor:
         """Represents tensor data."""
 
-        data: Any
+        data: np.ndarray
 
-        def __init__(self, data: Any) -> None: ...
+        def __init__(self, data: np.ndarray) -> None: ...
 
     class Scalar:
         """Represents scalar data."""
 
-        data: Any
+        data: np.ndarray
 
-        def __init__(self, data: Any) -> None: ...
+        def __init__(self, data: np.ndarray) -> None: ...
 
 class MetaChunk:
     """
