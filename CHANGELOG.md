@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.6.16 (2024-08-24)
+
+### Fix
+
+* fix: version not commited ([`ec4a19d`](https://github.com/tiwater/rerun-query/commit/ec4a19ddb7f1f7b581e9d6653ce5d87d14dd4092))
+
 ## v0.6.15 (2024-08-24)
 
 ### Fix
