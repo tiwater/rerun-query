@@ -3,7 +3,7 @@ use log::{debug, error};
 use re_chunk::Chunk;
 use re_entity_db::{EntityDb, StoreBundle};
 use re_log_encoding::decoder::VersionPolicy;
-use re_log_types::{ArrowMsg, LogMsg, StoreId};
+use re_log_types::LogMsg;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::error::Error;
@@ -32,7 +32,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("debug"))
         .format(|buf, record| writeln!(buf, "{}", record.args()))
         .init();
-    let file_path = "./examples/data/robot_action_gripper.rrd";
+    let file_path = "./examples/data/action_r1_h_not_np.rrd";
     let entity_path: &str = "";
 
     let encoded = File::open(&file_path)?;

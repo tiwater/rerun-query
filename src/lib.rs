@@ -6,7 +6,10 @@ use pyo3::{
     prelude::*,
     types::{IntoPyDict, PyDict, PyList},
 };
-use re_arrow2::array::{Array, Float64Array, ListArray, StructArray, UnionArray, Utf8Array};
+use re_arrow2::{
+    array::{self, Array},
+    datatypes::DataType,
+};
 use re_chunk::{Chunk, ComponentName};
 use re_entity_db::{EntityDb, StoreBundle};
 use re_log_encoding::decoder::VersionPolicy;
@@ -202,9 +205,9 @@ fn to_tensor_data(py: Python, chunk: &Chunk) -> PyResult<Data> {
     if let Some((_, tensor_data)) = chunk.components().first_key_value() {
         for i in 0..tensor_data.len() {
             let sub_array = tensor_data.value(i);
-            debug!("sub_array: {:?}", sub_array);
+            // debug!("sub_array: {:?}", sub_array);
 
-            if let Some(struct_array) = sub_array.as_any().downcast_ref::<StructArray>() {
+            if let Some(struct_array) = sub_array.as_any().downcast_ref::<array::StructArray>() {
                 if let Some(buffer_array) = struct_array.values().get(1) {
                     let row = match_array_to_numpy(py, buffer_array.as_ref())?;
                     all_rows.push(row);
@@ -212,7 +215,10 @@ fn to_tensor_data(py: Python, chunk: &Chunk) -> PyResult<Data> {
                     error!("Buffer field not found in StructArray");
                 }
             } else {
-                error!("Failed to downcast sub_array to StructArray");
+                error!(
+                    "Failed to downcast sub_array to StructArray, {:?}",
+                    sub_array
+                );
             }
         }
 
@@ -231,14 +237,17 @@ fn to_scalar_data(py: Python, chunk: &Chunk) -> PyResult<Data> {
     if let Some((_, scalar_data)) = chunk.components().first_key_value() {
         for i in 0..scalar_data.len() {
             let sub_array = scalar_data.value(i);
-            debug!("sub_array: {:?}", sub_array);
+            // debug!("sub_array: {:?}", sub_array);
 
-            if let Some(scalar_value) = sub_array.as_any().downcast_ref::<Float64Array>() {
+            if let Some(scalar_value) = sub_array.as_any().downcast_ref::<array::Float64Array>() {
                 // Assuming the scalar value is a single element in the array
                 let value = scalar_value.value(0).into_py(py);
                 all_rows.push(value);
             } else {
-                error!("Failed to downcast sub_array to Float64Array");
+                error!(
+                    "Failed to downcast sub_array to Float64Array, {:?}",
+                    sub_array
+                );
             }
         }
 
@@ -267,9 +276,90 @@ fn is_data_chunk(chunk: &Chunk) -> bool {
     is_scalar_chunk(chunk) || is_tensor_chunk(chunk)
 }
 
+fn convert_field_to_py(
+    py: Python,
+    field: &Box<dyn array::Array>,
+    value_index: usize,
+) -> PyResult<PyObject> {
+    match field.data_type() {
+        DataType::Null => Ok(py.None()),
+        DataType::Boolean => {
+            let array = field
+                .as_any()
+                .downcast_ref::<array::BooleanArray>()
+                .unwrap();
+            Ok(array.value(value_index).into_py(py))
+        }
+        DataType::Int8 => {
+            let array = field.as_any().downcast_ref::<array::Int8Array>().unwrap();
+            Ok(array.value(value_index).into_py(py))
+        }
+        DataType::Int16 => {
+            let array = field.as_any().downcast_ref::<array::Int16Array>().unwrap();
+            Ok(array.value(value_index).into_py(py))
+        }
+        DataType::Int32 => {
+            let array = field.as_any().downcast_ref::<array::Int32Array>().unwrap();
+            Ok(array.value(value_index).into_py(py))
+        }
+        DataType::Int64 => {
+            let array = field.as_any().downcast_ref::<array::Int64Array>().unwrap();
+            Ok(array.value(value_index).into_py(py))
+        }
+        DataType::UInt8 => {
+            let array = field.as_any().downcast_ref::<array::UInt8Array>().unwrap();
+            Ok(array.value(value_index).into_py(py))
+        }
+        DataType::UInt16 => {
+            let array = field.as_any().downcast_ref::<array::UInt16Array>().unwrap();
+            Ok(array.value(value_index).into_py(py))
+        }
+        DataType::UInt32 => {
+            let array = field.as_any().downcast_ref::<array::UInt32Array>().unwrap();
+            Ok(array.value(value_index).into_py(py))
+        }
+        DataType::UInt64 => {
+            let array = field.as_any().downcast_ref::<array::UInt64Array>().unwrap();
+            Ok(array.value(value_index).into_py(py))
+        }
+        DataType::Float32 => {
+            let array = field
+                .as_any()
+                .downcast_ref::<array::Float32Array>()
+                .unwrap();
+            Ok(array.value(value_index).into_py(py))
+        }
+        DataType::Float64 => {
+            let array = field
+                .as_any()
+                .downcast_ref::<array::Float64Array>()
+                .unwrap();
+            Ok(array.value(value_index).into_py(py))
+        }
+        DataType::List(_) => {
+            let list_array = field
+                .as_any()
+                .downcast_ref::<array::ListArray<i32>>()
+                .unwrap();
+            let list_element: Box<dyn array::Array> = list_array.value(value_index);
+            let py_list = PyList::empty_bound(py);
+            for i in 0..list_element.len() {
+                let item = convert_field_to_py(py, &list_element, i)?;
+                py_list.append(item)?;
+            }
+            Ok(py_list.into())
+        }
+        // Add other types as needed
+        _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+            "Unsupported data type: {:?}",
+            field.data_type()
+        ))),
+    }
+}
+
 // Helper function to match an Array to the correct NumPy array type and convert it to Vec<PyObject>
-fn match_array_to_numpy(py: Python, array: &dyn Array) -> PyResult<Vec<PyObject>> {
-    if let Some(union_array) = array.as_any().downcast_ref::<UnionArray>() {
+fn match_array_to_numpy(py: Python, array: &dyn array::Array) -> PyResult<Vec<PyObject>> {
+    if let Some(union_array) = array.as_any().downcast_ref::<array::UnionArray>() {
         let mut result: Vec<Py<PyAny>> = Vec::with_capacity(union_array.len());
         let fields = union_array.fields();
         let type_ids = union_array.types();
@@ -281,29 +371,7 @@ fn match_array_to_numpy(py: Python, array: &dyn Array) -> PyResult<Vec<PyObject>
                 Some(offset_buffer) => offset_buffer[i] as usize, // Using the offset if available
                 None => i, // If no offsets, use the index directly
             };
-            let value = match field_type {
-                11 => {
-                    let list_array = fields[11]
-                        .as_any()
-                        .downcast_ref::<ListArray<i32>>()
-                        .unwrap();
-                    let list_element: Box<dyn Array> = list_array.value(value_index);
-                    let struct_array = list_element
-                        .as_any()
-                        .downcast_ref::<Float64Array>()
-                        .unwrap();
-
-                    let py_array = struct_array.values().to_vec().into_py(py);
-                    py_array
-                }
-                _ => {
-                    return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                        "Unsupported type in UnionArray {}",
-                        field_type,
-                    )));
-                }
-            };
-
+            let value = convert_field_to_py(py, &fields[field_type as usize], value_index)?;
             result.push(value);
         }
 
@@ -352,7 +420,7 @@ pub fn query_data_entities(
         message.iter().for_each(|m| match m {
             LogMsg::ArrowMsg(_store_id, arrow_msg) => match Chunk::from_arrow_msg(&arrow_msg) {
                 Ok(chunk) => {
-                    // debug!("Schema: {:#?}", arrow_msg.schema);
+                    debug!("Schema: {:#?}", arrow_msg.schema);
                     if matches_data_type(&chunk, data_type_filter)
                         && matches_entity_path(&chunk, entity_path_filter)
                         && is_data_chunk(&chunk)
@@ -549,13 +617,13 @@ fn to_meta_chunk(py: Python, chunk: &Chunk) -> PyResult<Py<MetaChunk>> {
     let media_type_array = chunk
         .components()
         .get(&media_type_component)
-        .and_then(|array| array.as_any().downcast_ref::<ListArray<i32>>());
+        .and_then(|array| array.as_any().downcast_ref::<array::ListArray<i32>>());
 
     let media_type = if let Some(media_type_array) = media_type_array {
         media_type_array
             .value(0)
             .as_any()
-            .downcast_ref::<Utf8Array<i32>>()
+            .downcast_ref::<array::Utf8Array<i32>>()
             .unwrap()
             .value(0)
             .to_string()
@@ -567,13 +635,13 @@ fn to_meta_chunk(py: Python, chunk: &Chunk) -> PyResult<Py<MetaChunk>> {
     let text_array = chunk
         .components()
         .get(&text_component)
-        .and_then(|array| array.as_any().downcast_ref::<ListArray<i32>>());
+        .and_then(|array| array.as_any().downcast_ref::<array::ListArray<i32>>());
 
     let text = if let Some(text_array) = text_array {
         text_array
             .value(0)
             .as_any()
-            .downcast_ref::<Utf8Array<i32>>()
+            .downcast_ref::<array::Utf8Array<i32>>()
             .unwrap()
             .value(0)
             .to_string()
