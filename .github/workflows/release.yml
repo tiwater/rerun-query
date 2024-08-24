@@ -3,8 +3,8 @@ name: Semantic Release
 on:
   push:
     branches:
-      - master # Changed from tags to branch as per the example
-  workflow_dispatch: # Kept for manual triggering
+      - master
+  workflow_dispatch:
 
 jobs:
   release:
@@ -40,25 +40,23 @@ jobs:
 
       - name: Python Semantic Release
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
         id: release
         uses: python-semantic-release/python-semantic-release@v9.8.7
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.PAT_TOKEN }}
 
       - name: Update Versions
         if: steps.release.outputs.released == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           NEW_VERSION="${{ steps.release.outputs.version }}"
           sed -i "s/^version = .*/version = \"$NEW_VERSION\"/" pyproject.toml
           sed -i "s/^version = .*/version = \"$NEW_VERSION\"/" Cargo.toml
-          git config user.name github-actions
-          git config user.email github-actions@github.com
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add pyproject.toml Cargo.toml
           git commit -m "chore: update version to $NEW_VERSION [skip ci]"
-          git push
+          git push origin HEAD:master
 
       - name: Build and Publish with Maturin
         if: steps.release.outputs.released == 'true'
