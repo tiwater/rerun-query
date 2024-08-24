@@ -1,6 +1,6 @@
 [package]
 name = "rerun_query"
-version = "0.6.6"
+version = "0.6.19"
 authors = ["Tiwater Team <hi@tiwater.com>"]
 edition = "2021"
 description = "A Rust-powered Python package for querying rerun data."
