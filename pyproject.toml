@@ -12,14 +12,24 @@ requires-python = ">=3.8"
 license = { file = "LICENSE.md" }
 
 classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Natural Language :: English",
   "Programming Language :: Rust",
   "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: Implementation :: CPython",
   "Framework :: Robot Framework :: Library",
   "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
   "License :: OSI Approved :: Apache Software License",
   "Operating System :: OS Independent",
+  "Topic :: File Formats",
+  "Topic :: Software Development :: Libraries :: Python Modules",
 ] # Classifiers help users find your project by categorizing it
 
 # Optional: If you want to specify where to find the source code
@@ -34,5 +44,6 @@ module-name = "requery"
 features = ["pyo3/extension-module"]
 
 [tool.semantic_release]
-version_variable = ["Cargo.toml:version", "pyproject.toml:project.version"]
+version_source = "tag_only"
+version_variable = ["Cargo.toml:version", "pyproject.toml:version"]
 upload_to_pypi = false
