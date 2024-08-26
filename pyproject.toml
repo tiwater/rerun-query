@@ -1,6 +1,6 @@
 [project]
 name = "rerun_query"
-version = "0.6.7"
+version = "0.6.19"
 description = "A Rust-powered Python package for querying rerun data."
 authors = [{ name = "Tiwater Team", email = "hi@tiwater.com" }]
 readme = "README.md"
