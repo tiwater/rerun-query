@@ -1,8 +1,9 @@
 # Rerun Query
 
 [![PyPI version](https://img.shields.io/pypi/v/rerun-query.svg?color=green)](https://pypi.org/project/rerun-query/)
-[![Supported Python Version](https://img.shields.io/pypi/pyversions/rerun-query.svg)](https://pypi.org/project/rerun-query)
+[![Downloads](https://static.pepy.tech/badge/rerun-query)](https://pepy.tech/project/rerun-query)
 [![License](https://img.shields.io/github/license/tiwater/rerun-query.svg)](https://github.com/tiwater/rerun-query/blob/main/LICENSE)
+[![Supported Python Version](https://img.shields.io/pypi/pyversions/rerun-query.svg)](https://pypi.org/project/rerun-query)
 
 Python SDK to query and extract data from [Rerun](https://rerun.io) files.
 
