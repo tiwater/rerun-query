@@ -11,9 +11,10 @@ Python SDK to query and extract data from [Rerun](https://rerun.io) files.
 
 This project is only compatible with Rerun 0.18. Please make sure the source rrd file is created with this version of Rerun SDK [[Rust](https://docs.rs/rerun/latest/rerun/)].
 
+> [!NOTE]
 > The Blueprint of Rerun data (controls the layout of the viewer) is ignored for now, while the entity_paths were still included in the return value of `list_entity_paths()`.
 >
-> Please open an issue if you need this feature or anything else.
+> Please [open an issue](https://github.com/tiwater/rerun-query/issues/new) if you need this feature or other help.
 
 ## Install
 
